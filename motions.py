@@ -52,16 +52,13 @@ class motion_executioner(Node):
 
         # TODO Part 5: Create below the subscription to the topics corresponding to the respective sensors
         # IMU subscription
-        
-        ...
+        self.imu_sub=self.create_subscription(Imu, "/imu", self.imu_callback, 10)
         
         # ENCODER subscription
-
-        ...
+        self.odom_sub=self.create_subscription(Odometry, "/odom", self.odom_callback, 10)
         
         # LaserScan subscription 
-        
-        ...
+        self.laser_sub=self.create_subscription(LaserScan, "/scan", self.laser_callback, 10)
         
         self.create_timer(0.1, self.timer_callback)
 
@@ -73,15 +70,13 @@ class motion_executioner(Node):
     # You can save the needed fields into a list, and pass the list to the log_values function in utilities.py
 
     def imu_callback(self, imu_msg: Imu):
-        ...    # log imu msgs
+        self.imu_logger.log_values(imu_msg)
         
     def odom_callback(self, odom_msg: Odometry):
-        
-        ... # log odom msgs
+        self.odom_logger.log_values(odom_msg)
                 
     def laser_callback(self, laser_msg: LaserScan):
-        
-        ... # log laser msgs with position msg at that time
+        self.laser_logger.log_values(laser_msg)
                 
     def timer_callback(self):
         
@@ -114,17 +109,23 @@ class motion_executioner(Node):
     def make_circular_twist(self):
         
         msg=Twist()
-        ... # fill up the twist msg for circular motion
+        msg.linear.x=0.0
+        msg.linear.y=0.0
+        msg.angular.z=1.0
         return msg
 
     def make_spiral_twist(self):
         msg=Twist()
-        ... # fill up the twist msg for spiral motion
+        msg.linear.x=0.0
+        msg.linear.y=0.5
+        msg.angular.z=0.5
         return msg
     
     def make_acc_line_twist(self):
         msg=Twist()
-        ... # fill up the twist msg for line motion
+        msg.linear.x=0.0
+        msg.linear.y=0.5
+        msg.angular.z=0.0
         return msg
 
 import argparse
