@@ -28,6 +28,8 @@ class motion_executioner(Node):
     
     def __init__(self, motion_type=0):
         
+        self.spriralForward = 0.01
+
         super().__init__("motion_types")
         
         self.type=motion_type
@@ -52,13 +54,16 @@ class motion_executioner(Node):
 
         # TODO Part 5: Create below the subscription to the topics corresponding to the respective sensors
         # IMU subscription
-        self.imu_sub=self.create_subscription(Imu, "/imu", self.imu_callback, 10)
-        
+        self.imu_sub=self.create_subscription(Imu, "/imu", self.imu_callback, qos)
+        self.imu_initialized=True
+
         # ENCODER subscription
-        self.odom_sub=self.create_subscription(Odometry, "/odom", self.odom_callback, 10)
+        self.odom_sub=self.create_subscription(Odometry, "/odom", self.odom_callback, qos)
+        self.odom_initialized=True
         
         # LaserScan subscription 
-        self.laser_sub=self.create_subscription(LaserScan, "/scan", self.laser_callback, 10)
+        self.laser_sub=self.create_subscription(LaserScan, "/scan", self.laser_callback, qos)
+        self.laser_initialized=True
         
         self.create_timer(0.1, self.timer_callback)
 
@@ -70,19 +75,19 @@ class motion_executioner(Node):
     # You can save the needed fields into a list, and pass the list to the log_values function in utilities.py
 
     def imu_callback(self, imu_msg: Imu):
-        self.imu_logger.log_values(imu_msg)
+        self.imu_logger.log_values([imu_msg.linear_acceleration.x, imu_msg.linear_acceleration.y, imu_msg.angular_velocity.z, Time.from_msg(imu_msg.header.stamp).nanoseconds])
         
     def odom_callback(self, odom_msg: Odometry):
-        self.odom_logger.log_values(odom_msg)
+        self.odom_logger.log_values([odom_msg.pose.pose.position.x, odom_msg.pose.pose.position.y, euler_from_quaternion(odom_msg.pose.pose.orientation), Time.from_msg(odom_msg.header.stamp).nanoseconds])
                 
     def laser_callback(self, laser_msg: LaserScan):
-        self.laser_logger.log_values(laser_msg)
+        self.laser_logger.log_values([laser_msg.ranges, laser_msg.angle_increment, Time.from_msg(laser_msg.header.stamp).nanoseconds])
                 
     def timer_callback(self):
-        
+
         if self.odom_initialized and self.laser_initialized and self.imu_initialized:
             self.successful_init=True
-            
+
         if not self.successful_init:
             return
         
@@ -99,7 +104,7 @@ class motion_executioner(Node):
             
         else:
             print("type not set successfully, 0: CIRCLE 1: SPIRAL and 2: ACCELERATED LINE")
-            raise SystemExit 
+            raise SystemExit
 
         self.vel_publisher.publish(cmd_vel_msg)
         
@@ -109,22 +114,23 @@ class motion_executioner(Node):
     def make_circular_twist(self):
         
         msg=Twist()
-        msg.linear.x=0.0
+        msg.linear.x=0.25
         msg.linear.y=0.0
         msg.angular.z=1.0
         return msg
 
     def make_spiral_twist(self):
         msg=Twist()
-        msg.linear.x=0.0
-        msg.linear.y=0.5
-        msg.angular.z=0.5
+        msg.linear.x=self.spriralForward 
+        msg.linear.y=0.0
+        msg.angular.z=1.0
+        self.spriralForward += 0.005
         return msg
     
     def make_acc_line_twist(self):
         msg=Twist()
-        msg.linear.x=0.0
-        msg.linear.y=0.5
+        msg.linear.x=0.5
+        msg.linear.y=0.0
         msg.angular.z=0.0
         return msg
 
@@ -138,15 +144,13 @@ if __name__=="__main__":
 
     argParser.add_argument("--motion", type=str, default="circle")
 
-
-
     rclpy.init()
 
     args = argParser.parse_args()
 
     if args.motion.lower() == "circle":
-
         ME=motion_executioner(motion_type=CIRCLE)
+
     elif args.motion.lower() == "line":
         ME=motion_executioner(motion_type=ACC_LINE)
 
@@ -155,8 +159,6 @@ if __name__=="__main__":
 
     else:
         print(f"we don't have {arg.motion.lower()} motion type")
-
-
     
     try:
         rclpy.spin(ME)
