@@ -26,7 +26,7 @@ class localization(Node):
         
         if localizationType == rawSensor:
         # TODO Part 3: subscribe to the position sensor topic (Odometry)
-            self.odom_sub = self.create_subscription(Odometry, "/odom", self.odom_callback, odom_qos)
+            self.odom_sub = self.create_subscription(odom, "/odom", self.odom_callback, odom_qos)
         else:
             print("This type doesn't exist", sys.stderr)
     
@@ -46,4 +46,8 @@ class localization(Node):
 # Here put a guard that makes the node run, ONLY when run as a main thread!
 # This is to make sure this node functions right before using it in decision.py
 if __name__ == "__main__":
-    main()
+    rclpy.init(args=args)
+    # Create the node
+    rob_node = Node()
+    # Spin the node
+    rclpy.spin(rob_node)
