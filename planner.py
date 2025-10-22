@@ -28,20 +28,18 @@ class planner:
 
     # TODO Part 6: Implement the trajectories here
     def trajectory_planner(self):
-        trajectory = [[], []]
-        i = 0
+        trajectory = []
 
         # Parabola
-        for x in np.arange(0.0, 1.6, 0.1):
-            trajectory[i][0].append(x)
-            trajectory[i][1].append(x^2)
-            i += 1
+        # for x in np.arange(0.0, 1.5, 0.01):
+        #     point = [x, x**2]
+        #     trajectory.append(point)
+        #     print(point)
 
         # Sigmoid
-        # for x in np.arange(0.0, 2.6, 0.1):
-        #     trajectory[i][0].append(x)
-        #     trajectory[i][1].append(2/(1 + e^(-2*x)) - 1)
-        #     i += 1
+        for x in np.arange(0.0, 2.5, 0.01):
+            point = [x, 2/(1 + e**(-2*x)) - 1]
+            trajectory.append(point)
 
         # the return should be a list of trajectory points: [ [x1,y1], ..., [xn,yn]]
         return trajectory

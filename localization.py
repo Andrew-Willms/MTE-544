@@ -34,10 +34,10 @@ class localization(Node):
     def odom_callback(self, pose_msg):
         
         # TODO Part 3: Read x,y, theta, and record the stamp
-        self.pose=[ self.odom_logger.log_values([pose_msg.pose.pose.position.x, pose_msg.pose.pose.position.y, euler_from_quaternion(pose_msg.pose.pose.orientation), Time.from_msg(pose_msg.header.stamp).nanoseconds]) ]
+        self.pose=[ pose_msg.pose.pose.position.x, pose_msg.pose.pose.position.y, euler_from_quaternion(pose_msg.pose.pose.orientation), Time.from_msg(pose_msg.header.stamp).nanoseconds ]
         
         # Log the data
-        self.loc_logger.log_values([self.pose[0], self.pose[1], self.pose[2], Time.from_msg(self.pose[3]).nanoseconds])
+        self.loc_logger.log_values(self.pose)
     
     def getPose(self):
         return self.pose
@@ -48,6 +48,6 @@ class localization(Node):
 if __name__ == "__main__":
     rclpy.init(args=args)
     # Create the node
-    rob_node = Node()
+    rob_node = localization()
     # Spin the node
     rclpy.spin(rob_node)

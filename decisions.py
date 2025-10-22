@@ -22,6 +22,7 @@ from controller import controller, trajectoryController
 # You may add any other imports you may need/want to use below
 # import ...
 
+P=0; PD=1; PI=2; PID=3
 
 class decision_maker(Node):
     
@@ -38,12 +39,12 @@ class decision_maker(Node):
         # TODO Part 5: Tune your parameters here
     
         if motion_type == POINT_PLANNER:
-            self.controller=controller(klp=0.2, klv=0.5, kap=0.8, kav=0.6)
+            self.controller=controller(type=PID, klp=1, klv=0.8, kli=0.2, kap=1, kav=0.2, kai=0.2) #1, .8, .2
             self.planner=planner(POINT_PLANNER)    
     
     
         elif motion_type==TRAJECTORY_PLANNER:
-            self.controller=trajectoryController(klp=0.2, klv=0.5, kap=0.8, kav=0.6)
+            self.controller=trajectoryController(klp=0.15, klv=0.1, kli=0.2, kap=0.2, kav=0.1, kai=0.1)
             self.planner=planner(TRAJECTORY_PLANNER)
 
         else:
@@ -74,14 +75,21 @@ class decision_maker(Node):
         
         # TODO Part 3: Check if you reached the goal
         if type(self.goal) == list:
-            if math.abs(calculate_linear_error(self.localizer.getPose(), self.goal[self.current_goal_index])) <= 0.05:
-                if self.current_goal_index == len(self.goal) - 1:
-                    reached_goal = True
-                else:
-                    reached_goal = False
-                    self.current_goal_index += 1
+
+            if math.fabs(calculate_linear_error(self.localizer.getPose(), self.goal[len(self.goal) - 1])) <= 0.05:
+                reached_goal = True
+            else: reached_goal = False
+
+            # if math.fabs(calculate_linear_error(self.localizer.getPose(), self.goal[self.current_goal_index])) <= 0.05:
+            #     if self.current_goal_index == len(self.goal) - 1:
+            #         reached_goal = True
+            #     else:
+            #         reached_goal = False
+            #         self.current_goal_index += 1
+            # else:
+            #     reached_goal = False
         else:
-            if math.abs(calculate_linear_error(self.localizer.getPose(), self.goal)) <= 0.05:
+            if math.fabs(calculate_linear_error(self.localizer.getPose(), self.goal)) <= 0.05:
                 reached_goal = True
             else: reached_goal = False
             
@@ -119,9 +127,9 @@ def main(args=None):
 
     # TODO Part 4: instantiate the decision_maker with the proper parameters for moving the robot
     if args.motion.lower() == "point":
-        DM=decision_maker(publisher_msg=Twist, publishing_topic="/cmd_vel", qos_publisher=10, motion_type=POINT_PLANNER)
+        DM=decision_maker(publisher_msg=Twist, publishing_topic="/cmd_vel", qos_publisher=10, goalPoint=[1.0, 1], motion_type=POINT_PLANNER)
     elif args.motion.lower() == "trajectory":
-        DM=decision_maker(publisher_msg=Twist, publishing_topic="/cmd_vel", qos_publisher=10, motion_type=TRAJECTORY_PLANNER)
+        DM=decision_maker(publisher_msg=Twist, publishing_topic="/cmd_vel", qos_publisher=10, goalPoint=[1.0, 1.0], motion_type=TRAJECTORY_PLANNER)
     else:
         print("invalid motion type", file=sys.stderr)        
     

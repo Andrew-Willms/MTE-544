@@ -1,5 +1,7 @@
 from rclpy.time import Time
 from utilities import Logger
+# from builtin_interfaces.msg import Time
+# now = Time()
 
 # Controller type
 P=0 # poportional
@@ -41,7 +43,7 @@ class PID_ctrl:
         stamp=stamped_error[1]
         
         self.history.append(stamped_error)        
-        
+
         if (len(self.history) > self.history_length):
             self.history.pop(0)
         
@@ -54,12 +56,19 @@ class PID_ctrl:
         error_dot=0
         
         for i in range(1, len(self.history)):
-            
-            t0=Time.from_msg(self.history[i-1][1])
-            t1=Time.from_msg(self.history[i][1])
-            
-            dt=(t1.nanoseconds - t0.nanoseconds) / 1e9
-            
+
+
+            t0 = self.history[i-1][1]
+            t1 = self.history[i][1]
+
+            # This is the useless code that was provided in the lab template.
+            # It didn't work so we cut out the BS and used the nanoseconds directly.
+            #t0=Time.from_msg(self.history[i-1][1])
+            #t1=Time.from_msg(self.history[i][1])            
+            #dt=(t1.nanoseconds - t0.nanoseconds) / 1e9
+
+            dt=(t1 - t0) / 1e9
+
             dt_avg+=dt
 
             # use constant dt if the messages arrived inconsistent
